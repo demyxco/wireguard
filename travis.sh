@@ -11,7 +11,7 @@ DEMYX_WIREGUARD_VERSION="$(docker exec "$DEMYX_REPOSITORY" sh -c "apk info -d wi
 
 # Replace versions
 sed -i "s|alpine-.*.-informational|alpine-${DEMYX_WIREGUARD_ALPINE_VERSION}-informational|g" README.md
-sed -i "s|${DEMYX_REPOSITORY}-.*.-informational|${DEMYX_REPOSITORY}-${DEMYX_WIREGUARD_VERSION}-informational|g" README.md
+sed -i "s|${DEMYX_REPOSITORY}-.*.-informational|${DEMYX_REPOSITORY}-${DEMYX_WIREGUARD_VERSION/-/--}-informational|g" README.md
 
 # Echo versions to file
 echo "DEMYX_WIREGUARD_ALPINE_VERSION=$DEMYX_WIREGUARD_ALPINE_VERSION
