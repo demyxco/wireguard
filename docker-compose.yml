@@ -1,0 +1,101 @@
+# Demyx
+# https://demyx.sh
+#
+# This docker-compose.yml is designed for VPS use with SSL/TLS first.
+# Be sure to change all the domain.tld domains and credentials before running docker-compose up -d.
+#
+version: "3.7"
+services:
+  demyx_socket:
+    # Uncomment below if your host OS is CentOS/RHEL/Fedora
+    #privileged: true
+    image: demyx/docker-socket-proxy
+    container_name: demyx_socket
+    restart: unless-stopped
+    networks:
+      - demyx_socket
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - CONTAINERS=1
+  demyx_traefik:
+    image: demyx/traefik
+    container_name: demyx_traefik
+    restart: unless-stopped
+    depends_on: 
+      - demyx_socket
+    networks:
+      - demyx
+      - demyx_socket
+    ports:
+      - 80:8081
+      - 443:8082
+    volumes:
+      - demyx_traefik:/demyx
+      - demyx_log:/var/log/demyx
+    environment:
+      - DEMYX_ACME_EMAIL=info@domain.tld
+  demyx_pihole:
+    container_name: demyx_pihole
+    image: pihole/pihole
+    restart: unless-stopped
+    volumes:
+      - demyx_pihole:/etc/pihole
+      - demyx_pihole_dnsmasq:/etc/dnsmasq.d
+    environment:
+      WEBPASSWORD: demyx
+      DNS1: "1.1.1.1"
+      DNS2: "1.0.0.1"
+      TZ: America/Los_Angeles
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pihole-http.rule=Host(`domain.tld`)"
+      - "traefik.http.routers.pihole-http.entrypoints=http"
+      - "traefik.http.routers.pihole-http.middlewares=pihole-redirect"
+      - "traefik.http.routers.pihole-https.rule=Host(`domain.tld`)"
+      - "traefik.http.routers.pihole-https.entrypoints=https"
+      - "traefik.http.routers.pihole-https.tls.certresolver=demyx"
+      - "traefik.http.middlewares.pihole-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.pihole-https.service=vpn"
+      - "traefik.http.services.vpn.loadbalancer.server.port=80"
+    networks:
+      demyx:
+        ipv4_address: 10.0.0.255
+  demyx_wireguard:
+    image: demyx/wireguard
+    container_name: demyx_wireguard
+    restart: unless-stopped
+    volumes:
+      - demyx_wireguard:/demyx
+    cap_add:
+      - NET_ADMIN
+    networks:
+      demyx:
+        ipv4_address: 10.0.0.100
+    environment:
+      - DEMYX_ADDRESS=10.0.0.100
+      - DEMYX_PEER=1
+      - DEMYX_PORT=51820
+      - DEMYX_INTERFACE=eth0
+    ports:
+      - 51820:51820/udp
+volumes:
+  demyx_log:
+    name: demyx_log
+  demyx_traefik:
+    name: demyx_traefik
+  demyx_wireguard:
+    name: demyx_wireguard
+  demyx_pihole:
+    name: demyx_pihole
+  demyx_pihole_dnsmasq:
+    name: demyx_pihole_dnsmasq
+networks:
+  demyx_socket:
+    name: demyx_socket
+  demyx:
+    name: demyx
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/16

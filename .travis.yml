@@ -1,0 +1,26 @@
+# Demyx
+# https://demyx.sh
+
+notifications:
+  email:
+    on_success: never
+    on_failure: always
+
+services:
+  - docker
+
+env:
+  - DEMYX_USERNAME=demyx DEMYX_REPOSITORY=wireguard
+
+before_install:
+  - docker pull alpine
+
+script:
+  - docker build --no-cache -t demyx/"$DEMYX_REPOSITORY" .
+  - docker run -dit --name="$DEMYX_REPOSITORY" --entrypoint=sh demyx/"$DEMYX_REPOSITORY"
+  - docker exec "$DEMYX_REPOSITORY" sh -c "apk info -d wireguard-tools 2>&1" | grep wireguard | awk '{print $1}'
+
+after_success:
+  - echo "$DEMYX_PASSWORD" | docker login -u "$DEMYX_USERNAME" --password-stdin
+  - docker push demyx/"$DEMYX_REPOSITORY"
+  - bash travis.sh
