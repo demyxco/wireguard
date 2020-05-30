@@ -36,87 +36,80 @@ services:
   demyx_socket:
     # Uncomment below if your host OS is CentOS/RHEL/Fedora
     #privileged: true
-    image: demyx/docker-socket-proxy
     container_name: demyx_socket
-    restart: unless-stopped
-    networks:
-      - demyx_socket
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - CONTAINERS=1
-  demyx_traefik:
-    image: demyx/traefik
-    container_name: demyx_traefik
+    image: demyx/docker-socket-proxy
+    networks:
+      - demyx_socket
     restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  demyx_traefik:
+    container_name: demyx_traefik
     depends_on: 
       - demyx_socket
+    environment:
+      - DEMYX_ACME_EMAIL=info@domain.tld
+    image: demyx/traefik
     networks:
       - demyx
       - demyx_socket
     ports:
       - 80:8081
       - 443:8082
-    volumes:
-      - demyx_traefik:/demyx
-      - demyx_log:/var/log/demyx
-    environment:
-      - DEMYX_ACME_EMAIL=info@domain.tld
-  demyx_pihole:
-    container_name: demyx_pihole
-    image: pihole/pihole
     restart: unless-stopped
     volumes:
-      - demyx_pihole:/etc/pihole
-      - demyx_pihole_dnsmasq:/etc/dnsmasq.d
+      - demyx_log:/var/log/demyx
+      - demyx_traefik:/demyx
+  demyx_pihole:
+    container_name: demyx_pihole
+    depends_on: 
+      - demyx_traefik
     environment:
-      WEBPASSWORD: demyx
       DNS1: "1.1.1.1"
       DNS2: "1.0.0.1"
       TZ: America/Los_Angeles
+      WEBPASSWORD: demyx
+    image: pihole/pihole
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.pihole-http.rule=Host(`domain.tld`)"
+      - "traefik.http.middlewares.pihole-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.pihole-http.entrypoints=http"
       - "traefik.http.routers.pihole-http.middlewares=pihole-redirect"
-      - "traefik.http.routers.pihole-https.rule=Host(`domain.tld`)"
+      - "traefik.http.routers.pihole-http.rule=Host(`domain.tld`)"
       - "traefik.http.routers.pihole-https.entrypoints=https"
-      - "traefik.http.routers.pihole-https.tls.certresolver=demyx"
-      - "traefik.http.middlewares.pihole-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.pihole-https.rule=Host(`domain.tld`)"
       - "traefik.http.routers.pihole-https.service=vpn"
+      - "traefik.http.routers.pihole-https.tls.certresolver=demyx"
       - "traefik.http.services.vpn.loadbalancer.server.port=80"
     networks:
       demyx:
         ipv4_address: 10.0.0.255
-  demyx_wireguard:
-    image: demyx/wireguard
-    container_name: demyx_wireguard
     restart: unless-stopped
     volumes:
-      - demyx_wireguard:/demyx
+      - demyx_pihole:/etc/pihole
+      - demyx_pihole_dnsmasq:/etc/dnsmasq.d
+  demyx_wireguard:
     cap_add:
       - NET_ADMIN
+    container_name: demyx_wireguard
+    depends_on: 
+      - demyx_pihole
+    environment:
+      - DEMYX_ADDRESS=10.0.0.100
+      - DEMYX_INTERFACE=eth0
+      - DEMYX_PEER=1
+      - DEMYX_PORT=51820
+    image: demyx/wireguard
     networks:
       demyx:
         ipv4_address: 10.0.0.100
-    environment:
-      - DEMYX_ADDRESS=10.0.0.100
-      - DEMYX_PEER=1
-      - DEMYX_PORT=51820
-      - DEMYX_INTERFACE=eth0
     ports:
       - 51820:51820/udp
-volumes:
-  demyx_log:
-    name: demyx_log
-  demyx_traefik:
-    name: demyx_traefik
-  demyx_wireguard:
-    name: demyx_wireguard
-  demyx_pihole:
-    name: demyx_pihole
-  demyx_pihole_dnsmasq:
-    name: demyx_pihole_dnsmasq
+    restart: unless-stopped
+    volumes:
+      - demyx_wireguard:/demyx
 networks:
   demyx_socket:
     name: demyx_socket
@@ -126,6 +119,17 @@ networks:
       driver: default
       config:
         - subnet: 10.0.0.0/16
+volumes:
+  demyx_log:
+    name: demyx_log
+  demyx_pihole:
+    name: demyx_pihole
+  demyx_pihole_dnsmasq:
+    name: demyx_pihole_dnsmasq
+  demyx_traefik:
+    name: demyx_traefik
+  demyx_wireguard:
+    name: demyx_wireguard
 ```
 
 ## Updates & Support
