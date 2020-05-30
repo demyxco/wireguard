@@ -6,8 +6,8 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Get versions
-DEMYX_WIREGUARD_ALPINE_VERSION="$(docker exec --user=root "$DEMYX_REPOSITORY" cat /etc/os-release | grep VERSION_ID | cut -c 12- | sed -e 's/\r//g')"
-DEMYX_WIREGUARD_VERSION="$(docker exec "$DEMYX_REPOSITORY" sh -c "apk info -d wireguard-tools 2>&1" | grep wireguard | awk '{print $1}' | sed -e 's/\r//g')"
+DEMYX_WIREGUARD_ALPINE_VERSION="$(docker exec --user=root "$DEMYX_REPOSITORY" cat /etc/os-release | grep VERSION_ID | cut -c 12- | sed 's/\r//g')"
+DEMYX_WIREGUARD_VERSION="$(docker exec "$DEMYX_REPOSITORY" sh -c "apk info -d wireguard-tools 2>&1" | grep wireguard | awk '{print $1}' | sed 's/\r//g')"
 
 # Replace versions
 sed -i "s|alpine-.*.-informational|alpine-${DEMYX_WIREGUARD_ALPINE_VERSION}-informational|g" README.md
