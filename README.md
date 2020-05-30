@@ -34,14 +34,14 @@ PORT | 51820
 version: "3.7"
 services:
   demyx_socket:
-    # Uncomment below if your host OS is CentOS/RHEL/Fedora
-    #privileged: true
     container_name: demyx_socket
     environment:
       - CONTAINERS=1
     image: demyx/docker-socket-proxy
     networks:
       - demyx_socket
+    # Uncomment below if your host OS is CentOS/RHEL/Fedora
+    #privileged: true
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
