@@ -16,7 +16,7 @@ ENTRYPOINT | ["demyx-entrypoint"]
 PORT | 51820
 
 ## Requirements
-- Kernel 5.4+ for Alpine Linux
+- Kernel 5.4+ for Alpine Linux and wireguard-tools must be installed on the host
 - Kernel 5.6+ for Debian/Ubuntu and others or build the WireGuard module
 
 ## Usage
