@@ -20,9 +20,6 @@ do
     echo -e "[Peer]\nPublicKey = $(cat ${DEMYX}/peer_${i}_public)\nAllowedIPs = ${DEMYX_PEER_ADDRESS_1}.${DEMYX_PEER_ADDRESS_2}.${DEMYX_PEER_ADDRESS_3}.$(( $DEMYX_PEER_ADDRESS_4 + $i ))\n" >> "$DEMYX"/peer
 done
 
-# Only root can read the keys
-chmod 600 "$DEMYX"/*
-
 # Generate interface config
 echo "[Interface] 
 Address = $DEMYX_ADDRESS
@@ -32,6 +29,11 @@ PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o 
 PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o $DEMYX_INTERFACE -j MASQUERADE; iptables -D FORWARD -o %i -j ACCEPT 
 
 $(cat ${DEMYX}/peer)" > /etc/wireguard/wg0.conf
+
+# Set permissions
+chmod 600 "$DEMYX"/*
+chown -R root:root /etc/wireguard
+chmod 600 /etc/wireguard/wg0.conf
 
 # Bring up the interface
 wg-quick up wg0
