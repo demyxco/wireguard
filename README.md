@@ -2,7 +2,7 @@
 [![Build Status](https://img.shields.io/travis/demyxco/wireguard?style=flat)](https://travis-ci.org/demyxco/wireguard)
 [![Docker Pulls](https://img.shields.io/docker/pulls/demyx/wireguard?style=flat&color=blue)](https://hub.docker.com/r/demyx/wireguard)
 [![Architecture](https://img.shields.io/badge/linux-amd64-important?style=flat&color=blue)](https://hub.docker.com/r/demyx/wireguard)
-[![Alpine](https://img.shields.io/badge/alpine-3.12.1-informational?style=flat&color=blue)](https://hub.docker.com/r/demyx/wireguard)
+[![Alpine](https://img.shields.io/badge/alpine-3.12.2-informational?style=flat&color=blue)](https://hub.docker.com/r/demyx/wireguard)
 [![WireGuard](https://img.shields.io/badge/wireguard-wireguard--tools--1.0.20200510--r0-informational?style=flat&color=blue)](https://hub.docker.com/r/demyx/wireguard)
 [![Buy Me A Coffee](https://img.shields.io/badge/buy_me_coffee-$5-informational?style=flat&color=blue)](https://www.buymeacoffee.com/VXqkQK5tb)
 [![Become a Patron!](https://img.shields.io/badge/become%20a%20patron-$5-informational?style=flat&color=blue)](https://www.patreon.com/bePatron?u=23406156)
